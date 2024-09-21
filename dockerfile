@@ -1,27 +1,41 @@
-FROM ubuntu:latest
+# Use uma imagem base Debian bullseye-slim
+FROM debian:bullseye-slim
 
-# Atualizar o sistema e instalar pacotes necessários
-RUN apt-get update && apt-get install -y \
-    xrdp \
-    tightvncserver \
-    xfce4 \
-    xfce4-goodies
+# Instale o Nginx e crie o usuário nginx
+RUN apt-get update && \
+    apt-get install -y nginx && \
+    apt-get clean && \
+    useradd -r -s /sbin/nologin nginx
 
-# Criar usuário dedicado
-RUN useradd -m vncuser && echo "vncuser:minhaSenhaForte" | chpasswd
+# Crie um diretório para os arquivos estáticos
+RUN mkdir -p /var/www/html
 
-# Configurar VNC para vncuser
-RUN su vncuser -c "mkdir -p ~/.vnc && echo 'vncuser:1234' > ~/.vnc/passwd && vncserver -config ~/.vnc/xstartup"
-# Configurar o autologin
-RUN sed -i 's/autologin=0/autologin=1/g' /etc/default/xrdp
+# Copie os arquivos do frontend para o diretório public
+COPY public /var/www/html
 
-# Configurar o VNC
-RUN mkdir -p ~/.vnc && \
-    echo "vncuser:1234" > ~/.vnc/passwd && \
-    vncserver -config /root/.vnc/xstartup
+RUN chown -R www-data:www-data /var/www/html && \
+    find /var/www/html -type d -exec chmod 755 {} \; && \
+    find /var/www/html -type f -exec chmod 644 {} \;
 
-# Expor a porta VNC
-EXPOSE 5901
+# Adicione o usuário nginx ao grupo www-data
+RUN usermod -a -G www-data nginx
 
-# Executar o servidor Xrdp
-CMD ["xrdp"]
+# Copie a configuração do Nginx
+COPY nginx.conf /etc/nginx/conf.d/default.conf
+
+# Configure o Nginx para usar o diretório public
+RUN echo "server { \
+    listen 8080; \
+    root /var/www/html; \
+    index index.html; \
+    server_name localhost; \
+    location / { \
+        try_files \$uri \$uri/ =404; \
+    } \
+}" > /etc/nginx/sites-available/default
+
+# Exponha a porta 80
+EXPOSE 80
+
+# Inicie o Nginx quando o container for executado
+CMD ["nginx", "-g", "daemon off;"]

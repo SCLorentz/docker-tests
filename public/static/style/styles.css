@@ -1,0 +1,17 @@
+/*fonts*/
+@import url('/static/style/fonts.css');
+
+/*dark theme*/
+@media (prefers-color-scheme: dark) {
+    body {
+        background-color: #121212;
+        color: #e0e0e0;
+    }
+}
+
+body {
+    background-color: #e0e0e0;
+    color: #121212;
+    /*fonts*/
+    font-family: 'Poppins', sans-serif;
+}
