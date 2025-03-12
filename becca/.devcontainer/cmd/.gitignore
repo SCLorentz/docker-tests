@@ -1,0 +1,10 @@
+# this is your gitignore file, all the things you don't want to sincronize with the web remains here
+# as an example, those files will not be sincronized with the web
+# you can add more files or folders to this list
+.DS_Store
+node_modules
+
+# you can also use "*" to specify all the files inside a folder
+# or "**" to specify all the files inside a folder and its subfolders
+# for example, this will ignore all the files inside the .vscode folder, independent of where it is located
+**/.vscode/*

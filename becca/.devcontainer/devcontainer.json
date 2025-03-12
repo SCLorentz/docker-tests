@@ -1,0 +1,46 @@
+
+{
+    "name": "becca",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
+    "runArgs": [
+        "--cap-add=SYS_PTRACE",
+        "--security-opt",
+        "seccomp=unconfined"
+    ],
+    "postStartCommand": "init",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "denoland.vscode-deno",
+                "PKief.material-icon-theme",
+                "MarcusElg.markdowntoolbar",
+                "miguelsolorio.fluent-icons",
+                "antfu.icons-carbon",
+                "aaron-bond.better-comments",
+                "MS-vsliveshare.vsliveshare"
+            ],
+            "settings": {
+                // * Cursor
+                "editor.cursorStyle": "block",
+                "editor.cursorSmoothCaretAnimation": "on",
+                "editor.cursorBlinking": "smooth",
+
+                // * Themes
+                "workbench.colorTheme": "One Dark Pro",
+                "workbench.productIconTheme": "icons-carbon",
+                "oneDarkPro.editorTheme": "Ocean",
+                "workbench.iconTheme": "material-icon-theme",
+                "material-icon-theme.activeIconPack": "react",
+                "editor.renderWhitespace": "all",
+                "editor.fontFamily": "Roboto, Menlo, Monaco, 'Courier New', monospace",
+
+                // * window
+                "window.customTitleBarVisibility": "auto",
+                "window.dialogStyle": "custom",
+                "window.titleBarStyle": "custom"
+            }
+        }
+    }
+}

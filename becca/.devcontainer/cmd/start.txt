@@ -1,0 +1,10 @@
+Welcome to Linux!
+
+Useful commands:
+- \x1b[33mdeno (--help)\x1b[39m: Deno is the program responsable to run yor JS/TS program
+- \x1b[33mrefresh\x1b[39m: If you change something in this file or the .bash file (both inside .devcontainer/cmd/)
+  you can use this command to update the .bashrc and refresh the terminal
+- \x1b[33mgit\x1b[39m: with this you can sincronize your project with the web, go back and foward to different
+  versions of your program and a lot more
+
+\x1b[1m[Press any key to continue]\x1b[22m
