@@ -1,0 +1,61 @@
+# Hello, world!
+
+## Constants and variables
+
+export const test = f => { try { f() } catch (e) { return _jsxs(_Fragment, {children: [`${e}`, <br></br>]}) } };
+export const constant = 1;
+export let variable = 1;
+
+this is an example of declaration of a constant in js:
+```javascript
+const constant = 1;
+number = 2;
+```
+<fieldset>> {test(() => constant = 2)}> {constant}</fieldset>
+
+<i>notice that this action results in an error and the constant remains unchanged</i>
+
+this is an example of a declaration of a variable in js:
+```javascript
+let variable = 1;
+number = 2;
+```
+<fieldset>> {test(() => variable = 2)}{variable}</fieldset>
+
+multiple variables can also be declared in the same line:
+```javascript
+let a = 1, b = 2, c = 3;
+```
+
+variables can be declared without a value:
+```javascript
+let a;
+```
+
+a value can be passed to multiple variables:
+```javascript
+let a, b, c;
+a = b = c = 3;
+```
+
+## Types
+
+javascript doesn't have explicit support for types, different from typescript, but that doesn't mean it doesn't have it in some sort of way.
+
+```javascript
+let a = 1; // number
+
+let b = "hello" // string
+
+let c = true // boolean
+
+let d = [1, 2, 3]; // Array: list of values
+
+let e = {a: 1, b: 2, c: 3} // Object: list of classified values
+```
+
+## Native Funcions
+
+```javascript
+console.log("Hello World") // this prints the input into the terminal
+```

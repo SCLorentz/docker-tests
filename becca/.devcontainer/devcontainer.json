@@ -9,7 +9,6 @@
         "--security-opt",
         "seccomp=unconfined"
     ],
-    "postStartCommand": "init",
     "customizations": {
         "vscode": {
             "extensions": [
@@ -19,7 +18,8 @@
                 "miguelsolorio.fluent-icons",
                 "antfu.icons-carbon",
                 "aaron-bond.better-comments",
-                "MS-vsliveshare.vsliveshare"
+                "MS-vsliveshare.vsliveshare",
+                "unifiedjs.vscode-mdx"
             ],
             "settings": {
                 // * Cursor
@@ -39,7 +39,11 @@
                 // * window
                 "window.customTitleBarVisibility": "auto",
                 "window.dialogStyle": "custom",
-                "window.titleBarStyle": "custom"
+                "window.titleBarStyle": "custom",
+
+                "editor.inlineSuggest.enabled": false,
+                "editor.suggest.showWords": false,
+                "github.copilot.enable": false
             }
         }
     }

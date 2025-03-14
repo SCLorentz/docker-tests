@@ -1,0 +1,1 @@
+export const test = f => { try { f() } catch (e) { console.error(`something went wrong:\n\t\x1b[31m${e}\x1b[39m\nyour code: ${e}`) } }
