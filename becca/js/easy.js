@@ -1,4 +1,4 @@
-import { test } from  "./admin.js"
+import { test, debug } from  "./admin.js"
 
 // this is a comment
 /**
@@ -17,11 +17,14 @@ function myFunction()
 
 myFunction()
 
-let myNum = 1;      // this is a variable
-const otherNum = 1; // this is a constant
+/// Variables
 
-test(() => myNum = 2);
-test(() => otherNum = 2);
+let myNum = 1;          // this is a variable
+const otherNum = 1;     // this is a constant
 
-console.log(myNum);
-console.log(otherNum);
+// * let's see what happend when I try to change the values of those variables
+debug(test(
+    // ! consider only this part of the code as an example
+    () => myNum = 2,
+    () => otherNum = 2
+));
