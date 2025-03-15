@@ -1,0 +1,39 @@
+void main()
+{
+    writeln("hello world!");
+    var mut i = read("your input: ");
+
+    Custom.new("Felipe", 16);
+}
+
+# this is a comment
+
+object Custom
+{
+    name: Str,
+    age: Num,
+}
+
+class Custom
+{
+    Custom new(name, age)
+    {
+        Self { name, age }
+    }
+
+    static Maybe<int> other() { ... }
+
+    void another = (e: Str) => { writeln("this is an arrow function") } 
+}
+
+async void myFunction() { ... }
+
+# variable processed in compilation time (global variable)
+const myVar = "something";
+
+writeln("{}", myVar);
+
+# eternal loop
+loop { ... }
+
+if something == other_thing { ... }
