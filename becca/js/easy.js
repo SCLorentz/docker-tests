@@ -1,9 +1,9 @@
-import { test, debug } from  "./admin.js"
+import { test, debug } from  "./control.js"
 
 // this is a comment
 /**
  * this is a multi-line comment
- */
+*/
 
 // this is a function that returns 0:
 function myFunction()

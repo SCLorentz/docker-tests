@@ -1,26 +1,37 @@
 # Hello, world!
 
-## Constants and variables
+## Constants and Variables
 
-export const test = f => { try { f() } catch (e) { return _jsxs(_Fragment, {children: [`${e}`, <br></br>]}) } };
-export const constant = 1;
-export let variable = 1;
+export const test = f => { try { return f() } catch (e) { return _jsxs(_Fragment, {children: [`${e}`, <br></br>]}) } };
 
-this is an example of declaration of a constant in js:
-```javascript
-const constant = 1;
-number = 2;
-```
-<fieldset>> {test(() => constant = 2)}> {constant}</fieldset>
+export function constant()
+{
+    const constant = 1;
+    constant = 2;
+    return constant
+}
 
-<i>notice that this action results in an error and the constant remains unchanged</i>
+export function variable()
+{
+    let variable = 1;
+    variable = 2;
+    return variable
+}
 
 this is an example of a declaration of a variable in js:
 ```javascript
 let variable = 1;
 number = 2;
 ```
-<fieldset>> {test(() => variable = 2)}{variable}</fieldset>
+<fieldset>> {test(variable)}</fieldset>
+
+this is an example of declaration of a constant in js:
+```javascript
+const constant = 1;
+number = 2;
+```
+<fieldset>> {test(constant)}</fieldset>
+<i>notice that this action results in an error and the constant remains unchanged</i>
 
 multiple variables can also be declared in the same line:
 ```javascript
@@ -43,19 +54,19 @@ a = b = c = 3;
 javascript doesn't have explicit support for types, different from typescript, but that doesn't mean it doesn't have it in some sort of way.
 
 ```javascript
-let a = 1; // number
+let a = 1;                  // number
 
-let b = "hello" // string
+let b = "hello"             // string
 
-let c = true // boolean
+let c = true                // boolean
 
-let d = [1, 2, 3]; // Array: list of values
+let d = [1, 2, 3];          // Array: list of values
 
-let e = {a: 1, b: 2, c: 3} // Object: list of classified values
+let e = {a: 1, b: 2, c: 3}  // Object: list of classified values
 ```
 
 ## Native Funcions
 
 ```javascript
-console.log("Hello World") // this prints the input into the terminal
+console.log("Hello World")  // this prints the input into the terminal
 ```
