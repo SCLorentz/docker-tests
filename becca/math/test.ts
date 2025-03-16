@@ -55,33 +55,51 @@ lexer = (i: string): Token[] => i.split("").map((_, i, a, g = get_token) =>
         a[i].token(TokenType.Str) :
         a[i].token(g(a[i]))
 })
-.filter(t => t != null);
+.filter(t => t != null),
 
-function process(token: Token[]): string | void
+// todo: use generics <T>() => new Map<String, T> in futurure
+variables = new Map<String, any>();
+
+class Process
 {
-    while (token.length > 0)
-    {
-        const t = token.shift();
+    constructor(public token: Token[]) {}
 
-        switch (t?.type)
+    new(): string | void
+    {
+        while (this.token.length > 0)
         {
-            case TokenType.Out:
-                token.shift();
-                console.log(token.shift()?.value);
-                break
-            case TokenType.In:
-                token.shift();
-                const val = token.shift();
-                if (val?.type != TokenType.Str) return "not a string literal"
-                prompt(val?.value);
-                break
-            case TokenType.Identifier:
-                if (token[0].type == TokenType.In)
-                {
-                    console.log(`${t?.value} needs to be set as variable`)
-                }
+            const t = this.token.shift();
+    
+            switch (t?.type)
+            {
+                case TokenType.Out:
+                    this.out();
+                    break
+                case TokenType.In:
+                    this.in()
+                    break
+                case TokenType.Identifier:
+                    const next = this.token.shift();
+                    if (next?.type == TokenType.In)
+                    {
+                        const v = this.in();
+                        if (v.a) return v.a;
+                        variables.set(t?.value, v.b);
+                    }
+                    console.log(variables)
+                    break
+            }
         }
     }
+
+    in(): { a: Maybe<string>, b: string }
+    {
+        this.token.shift();
+        const val = this.token.shift();
+        return val?.type != TokenType.Str ? {a: "not a string literal", b: ""} : { a: undefined, b: prompt(val?.value) || ""};
+    }
+
+    out = (s=this.token.shift) => s() && console.log(s()?.value);
 }
 
 async function main()
@@ -91,7 +109,7 @@ async function main()
 
     console.log(tree, "\n");
 
-    const error = process(tree);
+    const error = new Process(tree).new();
     if (error) console.error(`\x1b[31m${error}\x1b[39m`)
 }
 
