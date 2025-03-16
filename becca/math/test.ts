@@ -1,6 +1,22 @@
 type Maybe<T> = T | undefined;
 
+class Result<T>
+{
+    constructor(public error?: string, public result?: T) {}
+    unwrap_or = (fn: (error: string) => string | ErrorStd): T | string | ErrorStd => this.error ? fn(this.error) : this.result!;
+}
+
 interface Token { value: string; type: TokenType; raw: string; }
+
+class ErrorStd
+{
+    constructor(public error: string)
+    {
+        console.error(`\x1b[31m${error}\x1b[39m`);
+        // @ts-ignore
+        Deno.exit(1)
+    }
+}
 
 declare global
 {
@@ -18,8 +34,6 @@ String.prototype.is_numeric = function() { return /^\d+$/.test(this) ? TokenType
 String.prototype.token = function(type: TokenType) { return { value: this, type, raw: this } }
 
 String.prototype.is_symbol = function() { return ["+","-","/","*","%",">","<"].includes(this) ? TokenType.Symbol : undefined }
-
-///////////////////////////////
 
 enum TokenType
 {
@@ -63,7 +77,7 @@ class Process
 {
     constructor(public token: Token[]) {}
 
-    new(): string | void
+    new(): ErrorStd | void
     {
         while (this.token.length > 0)
         {
@@ -73,43 +87,34 @@ class Process
             {
                 case TokenType.Out:
                 {
-                    const v = this.out();
-                    if (v.a) return v.a;
+                    this.out().unwrap_or(e=>{return e});
                     break
                 }
                 case TokenType.In:
-                {
-                    const v = this.in();
-                    if (v.a) return v.a;
+                    this.in().unwrap_or(e=>{return e});
                     break
-                }
                 case TokenType.Num:
-                {
-                    this.number(t);
+                    this.number(t).unwrap_or(e=>{return e});
                     break
-                }
                 case TokenType.Identifier:
                     const next = this.token.shift();
-                    if (next?.type == TokenType.In)
-                    {
-                        const v = this.in();
-                        if (v.a) return v.a;
-                        variables.set(t?.value.replace(" ", ""), v.b);
-                    }
-                    else if (next) { this.token.unshift(next!) }
+                    //
+                    if (next?.type == TokenType.In) variables.set(t?.value.replace(" ", ""), this.in().unwrap_or(e=>new ErrorStd(e)));
+                    else if (next) this.token.unshift(next)
                     break
             }
         }
     }
 
-    in(): { a: Maybe<string>, b: string }
+    in(): Result<string>
     {
         this.token.shift();
         const val = this.token.shift();
-        return val?.type != TokenType.Str ? {a: "not a string literal", b: ""} : { a: undefined, b: prompt(val?.value) || ""};
+        if (val?.type != TokenType.Str) return new Result("not a string literal");
+        return new Result(undefined, prompt(val?.value) || "");
     }
 
-    out(): { a: Maybe<string> }
+    out(): Result<null>
     {
         const next = this.token.shift();
         let val: string;
@@ -120,26 +125,24 @@ class Process
                 val = variables.get(next.value.replace(" ", ""));
                 break
             case TokenType.Num:
-                const r = this.number(next);
-                if (!r) return {a: "Error parsing number"};
-                val = r.toString();
+                val = this.number(next).unwrap_or(_ => {return new ErrorStd("Error parsing number")})!.toString();
                 break
             default:
                 const t = this.token.shift();
-                if (!t) return {a: "nothing to print"}
-                if (t.type != TokenType.Str) return {a: "not a string literal"}
+                if (!t) return new Result("nothing to print")
+                if (t.type != TokenType.Str) return new Result("not a string literal")
                 //
                 val = t.value;
         }
         console.log(val);
-        return {a: undefined};
+        return new Result(undefined, null);
     }
 
-    number(t: Token, v = this.token.shift(), n = this.token.shift()): number | void
+    number(t: Token, v = this.token.shift(), n = this.token.shift()): Result<number>
     {
         // handles with operations
-        if (v?.type == TokenType.Symbol && n?.type == TokenType.Num) return eval(`${t.value}${v.value}${n.value}`);
-        return eval(`${t.value}`)
+        if (v?.type == TokenType.Symbol && n?.type == TokenType.Num) return new Result(undefined, eval(`${t.value}${v.value}${n.value}`));
+        return new Result(eval(`${t.value}`))
     }
 }
 
