@@ -26,8 +26,7 @@ enum TokenType
     Str = "Str",
     Identifier = "Identifier",
     LnBreak = "semi-colon",
-    Quotes = "quotes",
-    Space = "space",
+    Quotes = "quotes"
 }
 
 const get_token = (a: string): TokenType => new Map<string, TokenType>([
@@ -35,13 +34,10 @@ const get_token = (a: string): TokenType => new Map<string, TokenType>([
     ["<-", TokenType.In],
     [";", TokenType.LnBreak],
     ["\"", TokenType.Quotes],
-    [" ", TokenType.Space]
 ]).get(a) || typeof a === 'string' && a.is_numeric() || TokenType.Identifier,
 
 lexer = (i: string): Token[] => i.split("").map((_, i, a, g = get_token) =>
 {
-    if (g(a[i]) == TokenType.Space) return null;
-
     for (let x = 1; x < a.length - i; x++)
     {
         const $ = a[i+x];
@@ -55,7 +51,7 @@ lexer = (i: string): Token[] => i.split("").map((_, i, a, g = get_token) =>
         a[i].token(TokenType.Str) :
         a[i].token(g(a[i]))
 })
-.filter(t => t != null),
+.filter(t => t.value != " "),
 
 // todo: use generics <T>() => new Map<String, T> in futurure
 variables = new Map<String, any>();
