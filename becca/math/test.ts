@@ -26,7 +26,9 @@ enum TokenType
     Str = "Str",
     Identifier = "Identifier",
     LnBreak = "semi-colon",
-    Quotes = "quotes"
+    Quotes = "quotes",
+    Symbol = "Operator",
+    NewLn = "new line"
 }
 
 const get_token = (a: string): TokenType => new Map<string, TokenType>([
@@ -34,15 +36,18 @@ const get_token = (a: string): TokenType => new Map<string, TokenType>([
     ["<-", TokenType.In],
     [";", TokenType.LnBreak],
     ["\"", TokenType.Quotes],
+    ["-", TokenType.Symbol],
+    ["+", TokenType.Symbol],
+    ["<", TokenType.Symbol],
+    [">", TokenType.Symbol],
+    ["\n", TokenType.NewLn]
 ]).get(a) || typeof a === 'string' && a.is_numeric() || TokenType.Identifier,
 
 lexer = (i: string): Token[] => i.split("").map((_, i, a, g = get_token) =>
 {
     for (let x = 1; x < a.length - i; x++)
     {
-        const $ = a[i+x];
-        
-        g($) != g(a[i]) ?
+        const $ = a[i+x], _ = g($) != g(a[i]) ?
             (a.splice(i+1, x-1)) && (x = a.length) :    // remove the next char and breaks the loop
             (a[i] += $) && (a[i+x] = " ")               // complement the value to current token and remove the next
     }
@@ -72,7 +77,8 @@ class Process
                     this.out();
                     break
                 case TokenType.In:
-                    this.in()
+                    const v = this.in();
+                    if (v.a) return v.a;
                     break
                 case TokenType.Identifier:
                     const next = this.token.shift();
@@ -81,8 +87,9 @@ class Process
                         const v = this.in();
                         if (v.a) return v.a;
                         variables.set(t?.value, v.b);
+                        console.log(variables)
                     }
-                    console.log(variables)
+                    else if (next) { this.token.unshift(next!) }
                     break
             }
         }
@@ -95,7 +102,12 @@ class Process
         return val?.type != TokenType.Str ? {a: "not a string literal", b: ""} : { a: undefined, b: prompt(val?.value) || ""};
     }
 
-    out = () => this.token.shift() && console.log(this.token.shift()?.value);
+    out(): { a: Maybe<string> }
+    {
+        this.token.shift();
+        const val = this.token.shift();
+        return val?.type != TokenType.Str ? {a: "not a string literal"} : (console.log(val?.value), 1) && {a: undefined};
+    }
 }
 
 async function main()
