@@ -1,14 +1,6 @@
-import { debug } from "../js/control.js"
-
 type Maybe<T> = T | undefined;
-type More<T> = T | T[];
 
-export interface Token
-{
-    value: string;          // contains the raw value as seen inside the source code.
-    type: TokenType;        // tagged structure.
-    raw: string;
-}
+interface Token { value: string; type: TokenType; raw: string; }
 
 declare global
 {
@@ -20,16 +12,9 @@ declare global
     }    
 }
 
-String.prototype.is_numeric = function()
-{
-    // @ts-ignore: this is a string
-    return /^\d+$/.test(this) ? TokenType.Num : undefined;
-}
+String.prototype.is_numeric = function() { return /^\d+$/.test(this) ? TokenType.Num : undefined }
 
-String.prototype.token = function(type: TokenType)
-{
-    return { value: this, type, raw: this }
-}
+String.prototype.token = function(type: TokenType) { return { value: this, type, raw: this } }
 
 ///////////////////////////////
 
@@ -41,25 +26,38 @@ enum TokenType
     Str = "Str",
     Identifier = "Identifier",
     LnBreak = "semi-colon",
-    Quotes = "quotes"
+    Quotes = "quotes",
+    Space = "space",
 }
 
 const get_token = (a: string): TokenType => new Map<string, TokenType>([
     ["->", TokenType.Out],
     ["<-", TokenType.In],
     [";", TokenType.LnBreak],
-    ["\"", TokenType.Quotes]
+    ["\"", TokenType.Quotes],
+    [" ", TokenType.Space]
 ]).get(a) || typeof a === 'string' && a.is_numeric() || TokenType.Identifier,
 
-lexer = (i: string): Token[] => i.split("").map((t, i, a, next = a[i+1], y = get_token(t)) =>
+lexer = (i: string): Token[] => i.split("").map((_, i, a, g = get_token) =>
 {
-    y == get_token(next) ? (t += next) && (a[i+1] = "") : null;
+    if (g(a[i]) == TokenType.Space) return null;
 
-    return t.trimEnd() == "" ? null : t.token(y)
+    for (let x = 1; x < a.length - i; x++)
+    {
+        const $ = a[i+x];
+        
+        g($) != g(a[i]) ?
+            (a.splice(i+1, x-1)) && (x = a.length) :    // remove the next char and breaks the loop
+            (a[i] += $) && (a[i+x] = " ")               // complement the value to current token and remove the next
+    }
+
+    return g(a[i-1]) == TokenType.Quotes && g(a[i+1]) == TokenType.Quotes ?
+        a[i].token(TokenType.Str) :
+        a[i].token(g(a[i]))
 })
-.filter(token => token !== null);
+.filter(t => t != null);
 
-function process(token: Token[])
+function process(token: Token[]): string | void
 {
     while (token.length > 0)
     {
@@ -68,10 +66,14 @@ function process(token: Token[])
         switch (t?.type)
         {
             case TokenType.Out:
+                token.shift();
                 console.log(token.shift()?.value);
                 break
             case TokenType.In:
-                prompt(token.shift()?.value);
+                token.shift();
+                const val = token.shift();
+                if (val?.type != TokenType.Str) return "not a string literal"
+                prompt(val?.value);
                 break
             case TokenType.Identifier:
                 if (token[0].type == TokenType.In)
@@ -88,7 +90,11 @@ async function main()
     const tree = await Deno.readTextFile("./math/math.m").then(async (t: string) => lexer(t));
 
     console.log(tree, "\n");
-    process(tree);
+
+    const error = process(tree);
+    if (error) console.error(`\x1b[31m${error}\x1b[39m`)
 }
 
 main()
+
+export {}
