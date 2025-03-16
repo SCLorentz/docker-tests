@@ -99,7 +99,7 @@ class Process
         return val?.type != TokenType.Str ? {a: "not a string literal", b: ""} : { a: undefined, b: prompt(val?.value) || ""};
     }
 
-    out = (s=this.token.shift) => s() && console.log(s()?.value);
+    out = () => this.token.shift() && console.log(this.token.shift()?.value);
 }
 
 async function main()
