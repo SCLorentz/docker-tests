@@ -6,7 +6,7 @@ class Result<T>
     unwrap_or = (fn: (error: string) => string | ErrorStd): T | string | ErrorStd => this.error ? fn(this.error) : this.result!;
 }
 
-interface Token { value: string; type: TokenType; raw: string; }
+interface Token { value: string; type: TokenType; }
 
 class ErrorStd
 {
@@ -25,15 +25,18 @@ declare global
         is_numeric(): Maybe<TokenType>,
         token(type: TokenType): Token,
         is_string(token: string): Maybe<TokenType>,
-        is_symbol(): Maybe<TokenType>
+        is_symbol(): Maybe<TokenType>,
+        is_alphabetic(): boolean
     }    
 }
 
 String.prototype.is_numeric = function() { return /^\d+$/.test(this) ? TokenType.Num : undefined }
 
-String.prototype.token = function(type: TokenType) { return { value: this, type, raw: this } }
+String.prototype.token = function(type: TokenType) { return { value: this, type } }
 
 String.prototype.is_symbol = function() { return ["+","-","/","*","%",">","<"].includes(this) ? TokenType.Symbol : undefined }
+
+String.prototype.is_alphabetic = function()  { return /^[a-zA-Zçéêíôúãõ\s]*$/.test(this) }
 
 enum TokenType
 {
@@ -45,7 +48,8 @@ enum TokenType
     LnBreak = "semi-colon",
     Quotes = "quotes",
     Symbol = "Operator",
-    NewLn = "new line"
+    NewLn = "new line",
+    Equals = "equals",
 }
 
 const get_token = (a: string): TokenType => new Map<string, TokenType>([
@@ -53,7 +57,8 @@ const get_token = (a: string): TokenType => new Map<string, TokenType>([
     ["<-", TokenType.In],
     [";", TokenType.LnBreak],
     ["\"", TokenType.Quotes],
-    ["\n", TokenType.NewLn]
+    ["\n", TokenType.NewLn],
+    ["=", TokenType.Equals]
 ]).get(a) || typeof a === 'string' && (a.is_numeric() || a.is_symbol()) || TokenType.Identifier,
 
 lexer = (i: string): Token[] => i.split("").map((_, i, a, g = get_token) =>
@@ -85,11 +90,11 @@ class Process
     
             switch (t?.type)
             {
+                case TokenType.NewLn:
+                    continue
                 case TokenType.Out:
-                {
                     this.out().unwrap_or(e=>{return e});
                     break
-                }
                 case TokenType.In:
                     this.in().unwrap_or(e=>{return e});
                     break
@@ -99,7 +104,7 @@ class Process
                 case TokenType.Identifier:
                     const next = this.token.shift();
                     //
-                    if (next?.type == TokenType.In) variables.set(t?.value.replace(" ", ""), this.in().unwrap_or(e=>new ErrorStd(e)));
+                    if (next?.type == TokenType.In && t.value.is_alphabetic()) variables.set(t?.value.replace(" ", ""), this.in().unwrap_or(e=>new ErrorStd(e)));
                     else if (next) this.token.unshift(next)
                     break
             }
@@ -125,7 +130,7 @@ class Process
                 val = variables.get(next.value.replace(" ", ""));
                 break
             case TokenType.Num:
-                val = this.number(next).unwrap_or(_ => {return new ErrorStd("Error parsing number")})!.toString();
+                val = this.number(next).unwrap_or(e => new ErrorStd(e))!.toString();
                 break
             default:
                 const t = this.token.shift();
@@ -138,11 +143,17 @@ class Process
         return new Result(undefined, null);
     }
 
-    number(t: Token, v = this.token.shift(), n = this.token.shift()): Result<number>
+    number(t: Token, v = this.token.shift()): Result<number>
     {
         // handles with operations
-        if (v?.type == TokenType.Symbol && n?.type == TokenType.Num) return new Result(undefined, eval(`${t.value}${v.value}${n.value}`));
-        return new Result(eval(`${t.value}`))
+        if (v?.type == TokenType.Symbol)
+        {
+            const n = this.token.shift();
+            if (n?.type != TokenType.Num) return new Result("Expected number in expression")
+            // TODO: fix the error with the calculations eg: 3 * 2 + 1 resulting in 9 instead of 7 (notice that 1 + 1 - 1 works properly)
+            return new Result(undefined, eval(`${t.value}${v.value}${this.number(n).unwrap_or(e=>{return e})}`));
+        }
+        return new Result(undefined, parseInt(t.value))
     }
 }
 
@@ -150,7 +161,7 @@ async function main()
 {
     // @ts-ignore: Deno
     const tree = await Deno.readTextFile("./math/math.m").then(async (t: string) => lexer(t));
-    //console.log(tree, "\n");
+    console.log(tree, "\n");
 
     const error = new Process(tree).new();
     if (error) console.error(`\x1b[31m${error}\x1b[39m`)

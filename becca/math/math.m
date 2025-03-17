@@ -1,5 +1,5 @@
--> 3 * 3
+-> 1 + 1 - 1
 -> "Hello, World!"
-i <- input: "
+i <- "input: "
 -> "your input was:"
 -> i
